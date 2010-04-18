@@ -22,12 +22,12 @@ out-of-the-box.
 
 h1. USAGE
 
-cd /path/to/your/git/repo
+bq. cd /path/to/your/git/repo
 git template SomeTemplateName
 
-...
+bq. ...
 
-git template --freshen
+bq. git template --freshen
 
 
 h1. LICENSE
