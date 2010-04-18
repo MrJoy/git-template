@@ -65,7 +65,16 @@ Status codes:
 END
 exit
     ;;
-    *)  export TEMPLATE=$1; shift 1;;
+    "--freshen")
+      export OPERATION=update
+      export TEMPLATE=`git config --get gittemplate.template`
+      shift 1
+    ;;
+    *)
+      export OPERATION=new
+      export TEMPLATE=$1
+      shift 1
+    ;;
   esac
 done
 
@@ -94,6 +103,12 @@ fi
 if [ "$USE_TEMPLATE" == "" ]; then
   echo "Could not find template '$TEMPLATE'."
   exit 128
+fi
+
+if [ "$OPERATION" == "new" ]; then
+  git config --add gittemplate.template "$TEMPLATE"
+else
+  git config --replace-all gittemplate.template "$TEMPLATE"
 fi
 
 # A slightly weird way of handling things, but seems to be safe for names with 
