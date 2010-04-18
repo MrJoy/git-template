@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# TODO: I'm guessing there are use-cases surrounding symlinks that are badly
+# TODO: handled right now!  This ought to be addressed more systematically.
+
 # Suss out some paths; mostly we just care about the template directory, and 
 # where the root of this git repo is.
 REALNAME=`ls -L "$0"`
@@ -31,7 +34,10 @@ while [ $# -gt 0 ]; do
 Usage: git template <template-name>
 
 Will apply a project template to the current git repository.  A project can 
-consist of a .gitignore file, a .gitattributes file, and/or a hooks directory.
+consist of a any number of files belonging in the working directory and/or the
+.git directory; although the latter is HIGHLY discouraged.
+
+Template name is CaSe-SeNsItIvE!
 
 For files which are versioned under git (.gitignore, .gitattributes), the 
 template will ONLY be applied if you have no uncommitted changes on an existing
@@ -41,15 +47,23 @@ For the hooks directory, the template will always be applied so BE CAREFUL ABOUT
 MODIFYING THIS YOURSELF!  It's highly recommended that you version your hooks
 directory if you ever start mucking with it!
 
-Templates are searched for first in $GIT_PROJECT_TEMPLATE_DIRECTORY and if not
+Templates are searched for first in \$GIT_PROJECT_TEMPLATE_DIRECTORY and if not
 found there, in the default templates directory which for you is:
 
   $DEFAULT_TEMPLATE_DIR
 
 See the files in the default template directory for examples of how templates 
 are formed.
+
+Status codes:
+
+  0     Operations were performed as requested, with no unexpected/undesirable 
+        circumstances encountered.
+ 64     Operations may have been performed, but at least one file was skipped 
+        due to uncommitted changes.
+128     A fatal error was encountered, no operations were performed.
 END
-exit 1
+exit
     ;;
     *)  export TEMPLATE=$1; shift 1;;
   esac
@@ -57,7 +71,7 @@ done
 
 if [ "$TEMPLATE" == "" ]; then
   echo "Must specify a template name.  Use --help for more information."
-  exit 1
+  exit 128
 fi
 
 FILECOUNT=0
@@ -84,6 +98,52 @@ fi
 
 # A slightly weird way of handling things, but seems to be safe for names with 
 # spaces.
-find "$USE_TEMPLATE" -name "${TEMPLATE}.*" -print | while read line; do
-  echo "$line => ${line/${USE_TEMPLATE}\/${TEMPLATE}./}"
+STATUS=0
+find "$USE_TEMPLATE" -name "${TEMPLATE}.*" -print | while read TEMPLATE_FILE; do
+  #echo "$TEMPLATE_FILE => ${TEMPLATE_FILE/${USE_TEMPLATE}\/${TEMPLATE}./}"
+  SHORT_FILE="${TEMPLATE_FILE/${USE_TEMPLATE}\/${TEMPLATE}./}"
+  REPO_FILE="$REPO_ROOT"/"$SHORT_FILE"
+  IS_NOT_CLEAN=$(git status "$REPO_FILE" -s 2> /dev/null | wc -l)
+  if [ "$IS_NOT_CLEAN" -eq "0" ]; then
+    # TODO: Stuff.
+    TEMPLATE_FILE_IS_DIR=0
+    if [ -d "$TEMPLATE_FILE" ]; then
+      TEMPLATE_FILE_IS_DIR=1
+      # Add a trailing slash so that rsync does what we want.
+      TEMPLATE_FILE=${TEMPLATE_FILE}/
+    fi
+    
+    if [ -e "$REPO_FILE" ]; then
+      REPO_FILE_IS_DIR=0
+      if [ -d "$REPO_FILE" ]; then
+        REPO_FILE_IS_DIR=1
+      fi
+      
+      if [ "$REPO_FILE_IS_DIR" != "$TEMPLATE_FILE_IS_DIR" ]; then
+        IS_NOT_CLEAN=1
+        if [ "$REPO_FILE_IS_DIR" -eq "0" ]; then
+          echo "$SHORT_FILE is a file, but template version is a directory.  Skipping."
+          STATUS=64
+        else
+          echo "$SHORT_FILE is a directory, but template version is a file.  Skipping."
+          STATUS=64
+        fi
+      fi
+    fi
+    if [ "$IS_NOT_CLEAN" -eq "0" ]; then
+      # To see why we skip preservation of read/write permissions, times, etc
+      # go look at what git does wrt such metadata (short form: nuthin', because
+      # that produces saner results in the case Linus cares most about).
+      # --no-checksum
+      # --whole-file --sparse --ignore-times
+      # %c %l %L %i %f %n %o %m %t %B %G %M %P %U
+      # %B %L
+      rsync --recursive --links --executability --devices --specials --whole-file --sparse --ignore-times --out-format="%f applied." "$TEMPLATE_FILE" "$REPO_FILE" | perl -pse "s|^.*?\Q$TEMPLATE.\E||g"
+    fi
+  else
+    echo "$SHORT_FILE has uncommitted changes.  Skipping."
+    STATUS=64
+  fi
 done
+
+exit $STATUS
