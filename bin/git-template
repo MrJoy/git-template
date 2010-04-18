@@ -106,9 +106,12 @@ if [ "$USE_TEMPLATE" == "" ]; then
 fi
 
 if [ "$OPERATION" == "new" ]; then
-  git config --add gittemplate.template "$TEMPLATE"
-else
-  git config --replace-all gittemplate.template "$TEMPLATE"
+  if [ "`git config --get gittemplate.template`" == "" ]; then
+    git config --add gittemplate.template "$TEMPLATE"
+  else
+    echo "Already have a template here.  Use --freshen instead."
+    exit 128
+  fi
 fi
 
 # A slightly weird way of handling things, but seems to be safe for names with 
