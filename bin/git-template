@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Suss out some paths; mostly we just care about the template directory, and 
+# where the root of this git repo is.
+REALNAME=`ls -L "$0"`
+TMP=`dirname "$REALNAME"`/..
+BASE_DIR=`pushd "$TMP" > /dev/null; pwd; popd > /dev/null`
+TEMPLATE_DIR=$BASE_DIR/templates
+DEFAULT_TEMPLATE_DIR=
+
+if [ "$GIT_PROJECT_TEMPLATE_DIRECTORY" != "" ]; then
+  DEFAULT_TEMPLATE_DIR="$TEMPLATE_DIR"
+  TEMPLATE_DIR="${GIT_PROJECT_TEMPLATE_DIRECTORY%/}"
+fi
+
+# This seems like an ugly way to suss out the root of the git repo, but 
+# whatever.
+TMP=$(git rev-parse --show-cdup 2> /dev/null).
+REPO_STATUS=$?
+if [ "$REPO_STATUS" -ne "0" ]; then
+  echo "Not a git repo."
+  exit 128
+fi
+REPO_ROOT=`pushd "$TMP" > /dev/null; pwd; popd > /dev/null`
+
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    "-help" | "--help") 
+      cat <<END
+Usage: git template <template-name>
+
+Will apply a project template to the current git repository.  A project can 
+consist of a .gitignore file, a .gitattributes file, and/or a hooks directory.
+
+For files which are versioned under git (.gitignore, .gitattributes), the 
+template will ONLY be applied if you have no uncommitted changes on an existing
+version of the file.
+
+For the hooks directory, the template will always be applied so BE CAREFUL ABOUT
+MODIFYING THIS YOURSELF!  It's highly recommended that you version your hooks
+directory if you ever start mucking with it!
+
+Templates are searched for first in $GIT_PROJECT_TEMPLATE_DIRECTORY and if not
+found there, in the default templates directory which for you is:
+
+  $DEFAULT_TEMPLATE_DIR
+
+See the files in the default template directory for examples of how templates 
+are formed.
+END
+exit 1
+    ;;
+    *)  export TEMPLATE=$1; shift 1;;
+  esac
+done
+
+if [ "$TEMPLATE" == "" ]; then
+  echo "Must specify a template name.  Use --help for more information."
+  exit 1
+fi
+
+FILECOUNT=0
+if [ -d "$TEMPLATE_DIR" ]; then
+  FILECOUNT=`ls "$TEMPLATE_DIR/$TEMPLATE".* 2> /dev/null | wc -l`
+  if [ "$FILECOUNT" -gt "0" ]; then
+    USE_TEMPLATE="$TEMPLATE_DIR"
+  fi
+fi
+
+if [ ! "$FILECOUNT" -gt "0" ]; then
+  if [ -d "$DEFAULT_TEMPLATE_DIR" ]; then
+    FILECOUNT=`ls "$DEFAULT_TEMPLATE_DIR/$TEMPLATE".* 2> /dev/null | wc -l`
+    if [ "$FILECOUNT" -gt "0" ]; then
+      USE_TEMPLATE="$DEFAULT_TEMPLATE_DIR"
+    fi
+  fi
+fi
+
+if [ "$USE_TEMPLATE" == "" ]; then
+  echo "Could not find template '$TEMPLATE'."
+  exit 128
+fi
+
+# A slightly weird way of handling things, but seems to be safe for names with 
+# spaces.
+find "$USE_TEMPLATE" -name "${TEMPLATE}.*" -print | while read line; do
+  echo "$line => ${line/${USE_TEMPLATE}\/${TEMPLATE}./}"
+done
