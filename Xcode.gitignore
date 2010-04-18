@@ -1,0 +1,44 @@
+#see http://shanesbrain.net/2008/7/9/using-xcode-with-git
+
+# Sparkle distribution Private Key (Don't check me in!)
+dsa_priv.pem
+
+
+# automatic backup files
+*~.nib
+*.swp
+*~
+*(Autosaved).rtfd/
+Backup[ ]of[ ]*.pages/
+Backup[ ]of[ ]*.key/
+Backup[ ]of[ ]*.numbers/
+
+
+# xcode noise
+*.xcclassmodel/*
+*.pbxuser
+*.mode1
+*.mode1v3
+*.mode2v3
+*.perspective
+*.perspectivev3
+
+
+# build products
+build/
+*.[oa]
+
+
+# Other SCMs...
+.hg
+.svn
+CVS
+
+
+# Generated files
+VersionX-revision.h
+
+
+# osx noise
+.DS_Store
+profile
