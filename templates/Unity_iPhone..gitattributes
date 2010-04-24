@@ -1,0 +1,11 @@
+*.asset diff=unity
+*.mat diff=unity
+*.prefab diff=unity
+*.unity diff=unity
+*.fontsettings diff=unity
+*.GUISkin diff=unity
+*.guiskin diff=unity
+*.anim diff=unity
+*.cubemap diff=unity
+*.flare diff=unity
+*.physicMaterial diff=unity
