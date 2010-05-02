@@ -1,0 +1,8 @@
+You'll want to add the following to ~/.gitconfig in order to fully take 
+advantage of the Unity templates:
+
+[diff "unity"]
+      textconv=unity2text
+
+After that, you will want to ensure that the binary2text program included with 
+Unity -- and the git-template bin directory are both in your path.
