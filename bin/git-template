@@ -29,7 +29,7 @@ REPO_ROOT=`pushd "$TMP" > /dev/null; pwd; popd > /dev/null`
 
 while [ $# -gt 0 ]; do
   case $1 in
-    "-help" | "--help") 
+    "-?" | "-help" | "--help")
       cat <<END
 Usage: git template <template-name>
 
@@ -79,7 +79,7 @@ exit
 done
 
 if [ "$TEMPLATE" == "" ]; then
-  echo "Must specify a template name.  Use --help for more information."
+  echo "Could not find template '$TEMPLATE'.  Use --help for more information."
   exit 128
 fi
 
