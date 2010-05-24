@@ -12,11 +12,12 @@ it behave in the way Git expects.
 
 # INSTALLATION
 
-You'll want to add the following to ~/.gitconfig in order to fully take 
-advantage of the Unity templates:
+You'll want to tell Git to use the unity2text script to show diffs of files
+tagged as 'unity' (which the Unity templates do for you).  You can do so by 
+executing the following command:
 
-    [diff "unity"]
-        textconv=unity2text
+    git config --global --path --replace-all diff.unity.textconv unity2text
+
 
 After that, you will want to ensure that the binary2text program included with 
 Unity is in your path.
