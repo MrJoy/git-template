@@ -89,90 +89,92 @@ exit
   esac
 done
 
-if [ "$TEMPLATE" == "" ]; then
-  echo "Could not find template '$TEMPLATE'.  Use --help for more information."
-  exit 128
-fi
 
-FILECOUNT=0
-if [ -d "$TEMPLATE_DIR" ]; then
-  FILECOUNT=`ls "$TEMPLATE_DIR/$TEMPLATE".* 2> /dev/null | wc -l`
-  if [ "$FILECOUNT" -gt "0" ]; then
-    USE_TEMPLATE="$TEMPLATE_DIR"
-  fi
-fi
-
-if [ ! "$FILECOUNT" -gt "0" ]; then
-  if [ -d "$DEFAULT_TEMPLATE_DIR" ]; then
-    FILECOUNT=`ls "$DEFAULT_TEMPLATE_DIR/$TEMPLATE".* 2> /dev/null | wc -l`
-    if [ "$FILECOUNT" -gt "0" ]; then
-      USE_TEMPLATE="$DEFAULT_TEMPLATE_DIR"
+case $OPERATION in
+  "new" | "freshen")
+    if [ "$TEMPLATE" == "" ]; then
+      echo "Must specify a template name.  Use --help for more information."
+      exit 128
     fi
-  fi
-fi
 
-if [ "$USE_TEMPLATE" == "" ]; then
-  echo "Could not find template '$TEMPLATE'."
-  exit 128
-fi
-
-if [ "$OPERATION" == "new" ]; then
-  if [ "`git config --get gittemplate.template`" == "" ]; then
-    git config --add gittemplate.template "$TEMPLATE"
-  else
-    echo "Already have a template here.  Use --freshen instead."
-    exit 128
-  fi
-fi
-
-# A slightly weird way of handling things, but seems to be safe for names with 
-# spaces.
-STATUS=0
-find "$USE_TEMPLATE" -name "${TEMPLATE}.*" -print | while read TEMPLATE_FILE; do
-  #echo "$TEMPLATE_FILE => ${TEMPLATE_FILE/${USE_TEMPLATE}\/${TEMPLATE}./}"
-  SHORT_FILE="${TEMPLATE_FILE/${USE_TEMPLATE}\/${TEMPLATE}./}"
-  REPO_FILE="$REPO_ROOT"/"$SHORT_FILE"
-  IS_NOT_CLEAN=$(git status "$REPO_FILE" -s 2> /dev/null | wc -l)
-  if [ "$IS_NOT_CLEAN" -eq "0" ]; then
-    # TODO: Stuff.
-    TEMPLATE_FILE_IS_DIR=0
-    if [ -d "$TEMPLATE_FILE" ]; then
-      TEMPLATE_FILE_IS_DIR=1
-      # Add a trailing slash so that rsync does what we want.
-      TEMPLATE_FILE=${TEMPLATE_FILE}/
-    fi
-    
-    if [ -e "$REPO_FILE" ]; then
-      REPO_FILE_IS_DIR=0
-      if [ -d "$REPO_FILE" ]; then
-        REPO_FILE_IS_DIR=1
+    FILECOUNT=0
+    if [ -d "$TEMPLATE_DIR" ]; then
+      FILECOUNT=`ls "$TEMPLATE_DIR/$TEMPLATE".* 2> /dev/null | wc -l`
+      if [ "$FILECOUNT" -gt "0" ]; then
+        USE_TEMPLATE="$TEMPLATE_DIR"
       fi
-      
-      if [ "$REPO_FILE_IS_DIR" != "$TEMPLATE_FILE_IS_DIR" ]; then
-        IS_NOT_CLEAN=1
-        if [ "$REPO_FILE_IS_DIR" -eq "0" ]; then
-          echo "$SHORT_FILE is a file, but template version is a directory.  Skipping."
-          STATUS=64
-        else
-          echo "$SHORT_FILE is a directory, but template version is a file.  Skipping."
-          STATUS=64
+    fi
+
+    if [ ! "$FILECOUNT" -gt "0" ]; then
+      if [ -d "$DEFAULT_TEMPLATE_DIR" ]; then
+        FILECOUNT=`ls "$DEFAULT_TEMPLATE_DIR/$TEMPLATE".* 2> /dev/null | wc -l`
+        if [ "$FILECOUNT" -gt "0" ]; then
+          USE_TEMPLATE="$DEFAULT_TEMPLATE_DIR"
         fi
       fi
     fi
-    if [ "$IS_NOT_CLEAN" -eq "0" ]; then
-      # To see why we skip preservation of read/write permissions, times, etc
-      # go look at what git does wrt such metadata (short form: nuthin', because
-      # that produces saner results in the case Linus cares most about).
-      # --no-checksum
-      # --whole-file --sparse --ignore-times
-      # %c %l %L %i %f %n %o %m %t %B %G %M %P %U
-      # %B %L
-      rsync --recursive --links --executability --devices --specials --whole-file --sparse --ignore-times --out-format="%f applied." "$TEMPLATE_FILE" "$REPO_FILE" | perl -pse "s|^.*?\Q$TEMPLATE.\E||g"
+
+    if [ "$USE_TEMPLATE" == "" ]; then
+      echo "Could not find template '$TEMPLATE'.  Use --help for more information."
+      exit 128
     fi
-  else
-    echo "$SHORT_FILE has uncommitted changes.  Skipping."
-    STATUS=64
-  fi
-done
+
+    if [ "$OPERATION" == "new" ]; then
+      if [ "`git config --get gittemplate.template`" == "" ]; then
+        git config --add gittemplate.template "$TEMPLATE"
+      else
+        echo "Already have a template here.  Use --freshen instead."
+        exit 128
+      fi
+    fi
+
+    # A slightly weird way of handling things, but seems to be safe for names with 
+    # spaces.
+    STATUS=0
+    find "$USE_TEMPLATE" -name "${TEMPLATE}.*" -print | while read TEMPLATE_FILE; do
+      #echo "$TEMPLATE_FILE => ${TEMPLATE_FILE/${USE_TEMPLATE}\/${TEMPLATE}./}"
+      SHORT_FILE="${TEMPLATE_FILE/${USE_TEMPLATE}\/${TEMPLATE}./}"
+      REPO_FILE="$REPO_ROOT"/"$SHORT_FILE"
+      IS_NOT_CLEAN=$(git status "$REPO_FILE" -s 2> /dev/null | wc -l)
+      if [ "$IS_NOT_CLEAN" -eq "0" ]; then
+        # TODO: Stuff.
+        TEMPLATE_FILE_IS_DIR=0
+        if [ -d "$TEMPLATE_FILE" ]; then
+          TEMPLATE_FILE_IS_DIR=1
+          # Add a trailing slash so that rsync does what we want.
+          TEMPLATE_FILE=${TEMPLATE_FILE}/
+        fi
+    
+        if [ -e "$REPO_FILE" ]; then
+          REPO_FILE_IS_DIR=0
+          if [ -d "$REPO_FILE" ]; then
+            REPO_FILE_IS_DIR=1
+          fi
+      
+          if [ "$REPO_FILE_IS_DIR" != "$TEMPLATE_FILE_IS_DIR" ]; then
+            IS_NOT_CLEAN=1
+            if [ "$REPO_FILE_IS_DIR" -eq "0" ]; then
+              echo "$SHORT_FILE is a file, but template version is a directory.  Skipping."
+              STATUS=64
+            else
+              echo "$SHORT_FILE is a directory, but template version is a file.  Skipping."
+              STATUS=64
+            fi
+          fi
+        fi
+        if [ "$IS_NOT_CLEAN" -eq "0" ]; then
+          # To see why we skip preservation of read/write permissions, times,
+          # etc go look at what git does wrt such metadata (short form: nuthin',
+          # because that produces saner results in the cases Linus cares most
+          # about).
+          rsync --recursive --links --executability --devices --specials --whole-file --sparse --ignore-times --out-format="%f applied." "$TEMPLATE_FILE" "$REPO_FILE" | perl -pse "s|^.*?\Q$TEMPLATE.\E||g"
+        fi
+      else
+        echo "$SHORT_FILE has uncommitted changes.  Skipping."
+        STATUS=64
+      fi
+    done
+  ;;
+esac
 
 exit $STATUS
