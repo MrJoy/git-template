@@ -31,13 +31,17 @@ while [ $# -gt 0 ]; do
   case $1 in
     "-?" | "-help" | "--help")
       cat <<END
-Usage: git template <template-name>
+Usage: git template <template-name>|--freshen
 
-Will apply a project template to the current git repository.  A project can 
-consist of a any number of files belonging in the working directory and/or the
-.git directory; although the latter is HIGHLY discouraged.
+Options:
 
+<template-name>   Will apply a project template to the current git repository.  
+                  A project can consist of any number of files belonging in the 
+                  working directory and/or the .git directory; although the 
+                  latter is HIGHLY discouraged.
 
+--freshen         Update templated files, in the event a template has been 
+                  changed and you wish to apply the changes to a repo.
 
 
 
