@@ -1,3 +1,5 @@
+# OVERVIEW
+
 The Unity templates included here add support for showing metadata diffs in much
 the same was as the Asset Server interface.  This is achieved by using the 
 binary2text program included with Unity, and installing it as a "text converter"
@@ -8,30 +10,33 @@ of binary files.
 The bin/ directory includes a simple wrapper script around binary2text to make 
 it behave in the way Git expects.
 
+# INSTALLATION
+
 You'll want to add the following to ~/.gitconfig in order to fully take 
 advantage of the Unity templates:
 
-[diff "unity"]
-      textconv=unity2text
+    [diff "unity"]
+        textconv=unity2text
 
 After that, you will want to ensure that the binary2text program included with 
-Unity -- and the git-template bin directory are both in your path.
+Unity is in your path.
 
 On Mac, the binary2text program can be found in:
 
-  /Applications/Unity/Unity.app/Contents/Tools/
+    /Applications/Unity/Unity.app/Contents/Tools/
 
-Or, for iPhone users:
+Or, for Unity iPhone users:
 
-  /Applications/Unity iPhone/Unity.app/Contents/Tools/
+    /Applications/Unity iPhone/Unity.app/Contents/Tools/
 
 (Be sure to escape the space with a \ when adding it to your path!)
 
-Assuming you checked out git-template to a directory under your home directory
-named "Tools", adding the requisite items to your path can be achieved by 
-editing the file named ".profile" in your home directory and adding a line like 
-this:
+Either version of the tool will work fine, but I tend to use the one from the 
+desktop version of Unity.
 
-  export PATH=$PATH:~/Tools/git-template/bin:/Applications/Unity/Unity.app/Contents/Tools
+Adding binary2text to your path is done in much the same way as adding 
+git-template to your path.  Simply add a line like this at the end of .profile:
 
-Modify as needed based on where Unity and git-template are installed.
+    export PATH=$PATH:/Applications/Unity/Unity.app/Contents/Tools
+
+Modify as needed based on where Unity is installed.
