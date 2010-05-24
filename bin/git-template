@@ -37,30 +37,41 @@ Will apply a project template to the current git repository.  A project can
 consist of a any number of files belonging in the working directory and/or the
 .git directory; although the latter is HIGHLY discouraged.
 
-Template name is CaSe-SeNsItIvE!
 
-For files which are versioned under git (.gitignore, .gitattributes), the 
-template will ONLY be applied if you have no uncommitted changes on an existing
-version of the file.
 
-For the hooks directory, the template will always be applied so BE CAREFUL ABOUT
-MODIFYING THIS YOURSELF!  It's highly recommended that you version your hooks
-directory if you ever start mucking with it!
 
-Templates are searched for first in \$GIT_PROJECT_TEMPLATE_DIRECTORY and if not
-found there, in the default templates directory which for you is:
 
-  $DEFAULT_TEMPLATE_DIR
 
-See the files in the default template directory for examples of how templates 
-are formed.
+Templates:
+
+  Template name is CaSe-SeNsItIvE!
+
+  For files which are versioned under git (.gitignore, .gitattributes), the
+  template will ONLY be applied if you have no uncommitted changes on an
+  existing version of the file.
+
+  For the hooks directory, the template will always be applied so BE CAREFUL
+  ABOUT MODIFYING THIS YOURSELF!  It's highly recommended that you version your
+  hooks directory if you ever start mucking with it!
+
+  Templates are searched for first in \$GIT_PROJECT_TEMPLATE_DIRECTORY and if
+  not found there, in the default templates directory which for you is:
+
+    $DEFAULT_TEMPLATE_DIR
+
+  See the files in the default template directory for examples of how templates
+  are formed.
+
 
 Status codes:
 
   0     Operations were performed as requested, with no unexpected/undesirable 
         circumstances encountered.
+
  64     Operations may have been performed, but at least one file was skipped 
-        due to uncommitted changes.
+        due to the presence of uncommitted local changes.  Commit/stash/whatever
+        and try again.
+
 128     A fatal error was encountered, no operations were performed.
 END
 exit
