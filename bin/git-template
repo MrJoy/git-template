@@ -31,7 +31,7 @@ while [ $# -gt 0 ]; do
   case $1 in
     "-?" | "-help" | "--help")
       cat <<END
-Usage: git template <template-name>|--freshen
+Usage: git template <template-name>|--freshen|--list
 
 Options:
 
@@ -43,6 +43,7 @@ Options:
 --freshen         Update templated files, in the event a template has been 
                   changed and you wish to apply the changes to a repo.
 
+--list            List the available templates.
 
 
 
@@ -80,6 +81,10 @@ Status codes:
 END
 exit
     ;;
+    "--list")
+      export OPERATION=list
+      shift 1
+    ;;
     "--freshen")
       export OPERATION=update
       export TEMPLATE=`git config --get gittemplate.template`
@@ -95,6 +100,11 @@ done
 
 
 case $OPERATION in
+  "list")
+    A=`ls "$DEFAULT_TEMPLATE_DIR" 2> /dev/null | cut -d. -f1 | sort | uniq`
+    B=`ls "$TEMPLATE_DIR" 2> /dev/null | cut -d. -f1 | sort | uniq`
+    echo $A $B | perl -pse 's/\s+/\n/g' | sort | uniq
+  ;;
   "new" | "freshen")
     if [ "$TEMPLATE" == "" ]; then
       echo "Must specify a template name.  Use --help for more information."
