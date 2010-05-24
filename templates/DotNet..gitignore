@@ -1,0 +1,12 @@
+# IDE leavings...
+*.pidb
+*.userprefs
+
+# Debugging symbols...
+*.pdb
+*.mdb
+
+
+# Build artifacts...
+*/obj/
+*/bin/
