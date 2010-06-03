@@ -13,3 +13,10 @@ Library/expandedItems
 Library/unity default resources
 Library/unity editor resources
 
+# MonoDevelop IDE leavings...
+*.pidb
+*.userprefs
+
+# Debugging symbols...
+*.pdb
+*.mdb
