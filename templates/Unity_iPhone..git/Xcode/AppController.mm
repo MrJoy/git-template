@@ -8,6 +8,11 @@
 #import <OpenGLES/ES1/gl.h>
 #import <OpenGLES/ES1/glext.h>
 
+// This is set to true when applicationWillResignActive gets called. It is here
+// to prevent calling SetPause(false) from applicationDidBecomeActive without
+// previous call to applicationWillResignActive
+static bool gDidResignActive = false;
+
 // USE_DISPLAY_LINK_IF_AVAILABLE
 //
 // NOTE: some developers reported problems with input lag while using CADisplayLink, therefore it is disabled by default.
@@ -120,11 +125,11 @@ namespace iphone {
 	public:
 		static void Init();
 	};
-
+	
 	enum ScreenOrientation {
 	};
 
-	void SetScreenOrientation(ScreenOrientation flag);
+	void SetScreenOrientation(ScreenOrientation orientation);
 }	
 
 struct UnityFrameStats
@@ -471,7 +476,7 @@ void PresentContext_UnityCallback(struct UnityFrameStats const* unityFrameStats)
 #endif
 }
 
-int OpenEAGL_UnityCallback(int* screenWidth, int* screenHeight)
+int OpenEAGL_UnityCallback(UIWindow** window, int* screenWidth, int* screenHeight)
 {
 	CGRect rect = [[UIScreen mainScreen] bounds];
 	
@@ -499,8 +504,10 @@ int OpenEAGL_UnityCallback(int* screenWidth, int* screenHeight)
 	[_window makeKeyAndVisible];
 	[view release];
 	
+	*window = _window;
 	*screenWidth = _surface.size.width;
 	*screenHeight = _surface.size.height;	
+	
 	return true;
 }
 
@@ -730,7 +737,7 @@ int OpenEAGL_UnityCallback(int* screenWidth, int* screenHeight)
     // does not make use of keyboard either...
     // iphone::KeyboardOnScreen::Init() only creates a view and attaches it to main
     // window to make sure autorotation events are handled properly
-    iphone::KeyboardOnScreen::Init();
+	iphone::KeyboardOnScreen::Init();
 
 	if (_displayLink == nil)
 	{
@@ -754,8 +761,14 @@ int OpenEAGL_UnityCallback(int* screenWidth, int* screenHeight)
 - (void) applicationDidBecomeActive:(UIApplication*)application
 {
 	printf_console("-> applicationDidBecomeActive()\n");
-	UnitySetAudioSessionActive(true);
-	UnityPause(false);
+
+    if (gDidResignActive == true)
+    {
+	    UnitySetAudioSessionActive(true);
+	    UnityPause(false);
+    }
+
+    gDidResignActive = false;
 }
 
 - (void) applicationWillResignActive:(UIApplication*)application
@@ -763,6 +776,7 @@ int OpenEAGL_UnityCallback(int* screenWidth, int* screenHeight)
 	printf_console("-> applicationDidResignActive()\n");
 	UnitySetAudioSessionActive(false);
 	UnityPause(true);
+    gDidResignActive = true;
 }
 
 - (void) applicationDidReceiveMemoryWarning:(UIApplication*)application
