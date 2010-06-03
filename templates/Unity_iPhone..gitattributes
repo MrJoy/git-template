@@ -9,3 +9,5 @@
 *.cubemap diff=unity
 *.flare diff=unity
 *.physicMaterial diff=unity
+
+*.dll binary

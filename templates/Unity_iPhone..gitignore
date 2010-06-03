@@ -1,5 +1,7 @@
+# Mac cruft
 .DS_Store
 
+# Unity gubbins
 Temp/
 Library/AssetServerCacheV3
 Library/assetservercachev3
