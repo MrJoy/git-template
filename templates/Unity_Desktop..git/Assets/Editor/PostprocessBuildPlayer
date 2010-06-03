@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Args are:
+# $1 -- install path.
+# $2 -- Build type ("dashboard", "standaloneWin32", "standaloneOSXIntel", "standaloneOSXPPC", "standaloneOSXUniversal", "webplayer", ...)
+# $3 -- Optimization ("", "strip")
+# $4 -- Company name
+# $5 -- Product name
+# $6 -- Default screen width
+# $7 -- Default screen height
+
+################################################################################
+# Make sure we can find git.
+################################################################################
+GIT=`which git` >> /dev/null
+STATUS=$?
+if [ 1 == $STATUS ]; then
+  # Default path if installing from DMG on Mac.
+  GIT=/usr/local/git/bin/git
+fi
+
+if [ ! -f $GIT ]; then
+  echo "Couldn't find git."
+  exit 1
+fi
+
+################################################################################
+# Set up a temp file for us, or bomb out if we can't make one.
+################################################################################
+TMPBASE=`basename $0`
+TMPFILE=`mktemp /tmp/${TMPBASE}.XXXXXX` || exit 2
+
+################################################################################
+# Generate a message describing what's in this build.
+################################################################################
+echo "Build representing:" > $TMPFILE
+$GIT log HEAD -n 1 >> $TMPFILE
+echo >> $TMPFILE
+echo >> $TMPFILE
+echo "Plus these changes:" >> $TMPFILE
+$GIT diff HEAD Assets/ >> $TMPFILE
+
+################################################################################
+# Make sure it's a git repo.
+################################################################################
+pushd "$1" >> /dev/null
+$GIT status >> /dev/null 2>&1
+STATUS=$?
+if [ 128 == $STATUS ]; then
+  echo "Initializing repository..."
+  $GIT init .
+fi
+
+################################################################################
+# Commit our shiny new build, using the message we made above as the commit message.
+################################################################################
+$GIT add .
+$GIT commit -a -F $TMPFILE
+popd >> /dev/null
+rm $TMPFILE
