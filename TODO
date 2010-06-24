@@ -1,0 +1,9 @@
+Unity3 template should include ONLY this from library:
+
+EditorBuildSettings.asset
+InputManager.asset
+ProjectSettings.asset
+QualitySettings.asset
+TagManager.asset
+TimeManager.asset
+
