@@ -2,22 +2,8 @@
 .DS_Store
 
 # Unity gubbins.
-Library/AssetServerCacheV3
-Library/assetservercachev3
-Library/FailedAssetImports.txt
-Library/ScriptAssemblies
-Library/scriptassemblies
-Library/ScriptMapper
-Library/scriptmapper
-Library/Temp
-Library/assetDatabase3
-Library/cache
-Library/guidmapper
-Library/metadata
-Library/expandedItems
-Library/InspectorExpandedItems.asset
-Library/unity\ default\ resources
-Library/unity\ editor\ resources
+Library/*
+!Library/*.asset
 Temp/
 
 # MonoDevelop IDE leavings...
