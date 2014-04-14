@@ -91,7 +91,7 @@ exit
       shift 1
     ;;
     "--freshen")
-      export OPERATION=update
+      export OPERATION=freshen
       export TEMPLATE=`git config --get gittemplate.template`
       shift 1
     ;;
